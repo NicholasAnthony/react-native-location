@@ -101,6 +101,18 @@ RCT_EXPORT_METHOD(stopUpdatingHeading)
     [self.locationManager stopUpdatingHeading];
 }
 
+RCT_EXPORT_METHOD(startMonitoringVisits)
+{
+  NSLog(@"react-native-location: startMonitoringVisits");
+  [self.locationManager startMonitoringVisits];
+}
+
+RCT_EXPORT_METHOD(stopMonitoringVisits)
+{
+  NSLog(@"react-native-location: stopMonitoringVisits");
+  [self.locationManager stopMonitoringVisits];
+}
+
 -(NSString *)nameForAuthorizationStatus:(CLAuthorizationStatus)authorizationStatus
 {
     switch (authorizationStatus) {
@@ -169,6 +181,23 @@ RCT_EXPORT_METHOD(stopUpdatingHeading)
 
     NSLog(@"%@: lat: %f, long: %f, altitude: %f", location.timestamp, location.coordinate.latitude, location.coordinate.longitude, location.altitude);
     [self.bridge.eventDispatcher sendDeviceEventWithName:@"locationUpdated" body:locationEvent];
+}
+
+
+- (void)locationManager:(CLLocationManager *)manager didVisit:(CLVisit *)visit {
+  
+  NSDictionary *visitEvent = @{
+                               @"coords": @{
+                                   @"latitude": @(visit.coordinate.latitude),
+                                   @"longitude": @(visit.coordinate.longitude),
+                                   @"accuracy": @(visit.horizontalAccuracy),
+                                   },
+                               @"arrivalDate": @([visit.arrivalDate timeIntervalSince1970] * 1000),
+                               @"departureDate": @([visit.departureDate timeIntervalSince1970] * 1000)
+                               };
+  
+  NSLog(@"%@: lat: %f, long: %f, altitude: %f", visit.arrivalDate, visit.coordinate.latitude, visit.coordinate.longitude, visit.horizontalAccuracy);
+  [self.bridge.eventDispatcher sendDeviceEventWithName:@"didVisit" body:visitEvent];
 }
 
 @end
